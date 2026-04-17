@@ -1,9 +1,11 @@
 """Scrape bin collection dates from Reigate & Banstead council website."""
 
+import os
 from datetime import datetime
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -21,7 +23,19 @@ def get_collections(uprn: str = UPRN) -> dict[str, list[str]]:
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
-    driver = webdriver.Chrome(options=options)
+    chrome_bin = os.environ.get("CHROME_BIN")
+    if chrome_bin:
+        options.binary_location = chrome_bin
+
+    service_kwargs = {}
+    chromedriver_path = os.environ.get("CHROMEDRIVER_PATH")
+    if chromedriver_path:
+        service_kwargs["executable_path"] = chromedriver_path
+
+    driver = webdriver.Chrome(
+        options=options,
+        service=Service(**service_kwargs),
+    )
     try:
         driver.get(url)
         wait = WebDriverWait(driver, 30)

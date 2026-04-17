@@ -1,0 +1,12 @@
+services:
+  bindicator:
+    build: .
+    container_name: bindicator
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - UPRN=200001920678
+      - REFRESH_HOURS=12
+    # Chromium needs /dev/shm larger than Docker's default 64MB
+    shm_size: "256m"

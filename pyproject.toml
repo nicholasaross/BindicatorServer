@@ -10,4 +10,5 @@ dependencies = [
     "beautifulsoup4",
     "selenium",
     "apscheduler",
+    "tzdata",
 ]

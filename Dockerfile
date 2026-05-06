@@ -23,7 +23,8 @@ RUN pip install --no-cache-dir \
     uvicorn[standard] \
     beautifulsoup4 \
     selenium \
-    apscheduler
+    apscheduler \
+    tzdata
 
 COPY bindicator.py server.py ./
 

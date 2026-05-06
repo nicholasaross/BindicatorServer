@@ -32,6 +32,7 @@ Environment variables in `docker-compose.yml`:
 |---|---|---|
 | `UPRN` | `200001920678` | Property identifier for the council lookup |
 | `REFRESH_HOURS` | `12` | How often to re-scrape (hours) |
+| `TZ` | `Europe/London` | Timezone used for the `/next` rollover (see below) |
 
 ## API Endpoints
 
@@ -47,3 +48,11 @@ Environment variables in `docker-compose.yml`:
 ```json
 {"date": "2025-04-07", "bins": ["Rubbish", "Recycling"]}
 ```
+
+### `/next` rollover
+
+Bins are collected in the morning, so `/next` rolls today's date out of
+the response at **noon local time** (`TZ`). Before noon on a collection
+day the endpoint returns today's collection; from noon onwards it
+returns the following one. This avoids the indicator showing a stale
+"today" all afternoon and evening after the bins have been emptied.

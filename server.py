@@ -3,6 +3,8 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import FastAPI
@@ -14,6 +16,11 @@ logger = logging.getLogger("bindicator")
 
 UPRN = os.environ.get("UPRN", "200001920678")
 REFRESH_HOURS = int(os.environ.get("REFRESH_HOURS", "12"))
+TZ = ZoneInfo(os.environ.get("TZ", "Europe/London"))
+
+# Bins are collected in the morning; past noon, treat today as done so
+# /next rolls over to the following collection.
+ROLLOVER_HOUR = 12
 
 _cache: dict = {"data": None}
 
@@ -50,6 +57,18 @@ def collections():
     return _cache["data"]
 
 
+def _effective_today() -> str:
+    """ISO date treated as 'today' for /next purposes.
+
+    Past the rollover hour, today is considered done and tomorrow's date
+    is returned, so today's collection drops out of the upcoming list.
+    """
+    now = datetime.now(TZ)
+    if now.hour >= ROLLOVER_HOUR:
+        return (now.date() + timedelta(days=1)).isoformat()
+    return now.date().isoformat()
+
+
 @app.get("/next")
 def next_collection():
     """Return the next upcoming collection — optimised for ESP32 parsing.
@@ -59,7 +78,11 @@ def next_collection():
     """
     if not _cache["data"]:
         return JSONResponse({"date": None, "bins": []}, status_code=503)
-    earliest = min(_cache["data"].keys())
+    cutoff = _effective_today()
+    upcoming = [d for d in _cache["data"] if d >= cutoff]
+    if not upcoming:
+        return JSONResponse({"date": None, "bins": []}, status_code=503)
+    earliest = min(upcoming)
     return {"date": earliest, "bins": _cache["data"][earliest]}
 
 

@@ -9,5 +9,9 @@ services:
       - UPRN=200001920678
       - REFRESH_HOURS=12
       - TZ=Europe/London
+      - CACHE_FILE=/data/collections.json
+    volumes:
+      # Persist the scraped schedule so it survives container/host restarts.
+      - ./data:/data
     # Chromium needs /dev/shm larger than Docker's default 64MB
     shm_size: "256m"

@@ -11,3 +11,6 @@ wheels/
 
 # Claude Code
 .claude/
+
+# Persisted scrape cache (volume-mounted at runtime)
+data/
